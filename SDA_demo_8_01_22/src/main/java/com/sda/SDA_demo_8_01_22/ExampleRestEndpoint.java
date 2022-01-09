@@ -7,8 +7,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class ExampleRestEndpoint {
@@ -77,4 +79,47 @@ public class ExampleRestEndpoint {
         return personRepository.findAll().toString();
     }
 
+    @GetMapping(path = "/personsFromDatabaseByName", produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String personsFromDatabase(@RequestParam String name) {
+        return personRepository.findByFirstName(name).toString();
+    }
+
+    @GetMapping(path = "/personsFromDatabaseByIdGt", produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String personsFromDatabase(@RequestParam Long id) {
+        return personRepository.findByIdGreaterThan(id).toString();
+    }
+
+    private static Set<String> excludedNames;
+
+    public static Set<String> getExcludedNames() {
+        if (excludedNames == null) {
+            excludedNames = new LinkedHashSet<String>();
+        }
+        return excludedNames;
+    }
+
+    @GetMapping(path = "/excludeName", produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String excludeName(@RequestParam String name) {
+        getExcludedNames().add(name);
+        return "Successfully excluded name " + name;
+    }
+
+    @GetMapping(path = "/allowName", produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String allowName(@RequestParam String name) {
+        getExcludedNames().remove(name);
+        return "Successfully allowed name " + name;
+    }
+
+    @GetMapping(path = "/getPersonsWithExclusions", produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String getPersonsWithExclusions() {
+        if (getExcludedNames().isEmpty()) {
+            return personRepository.findAll().toString();
+        }
+        return personRepository.findByFirstNameNotIn(getExcludedNames()).toString();
+    }
 }
