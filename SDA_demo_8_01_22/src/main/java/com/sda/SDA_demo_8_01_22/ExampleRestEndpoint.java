@@ -5,8 +5,11 @@ import com.sda.SDA_demo_8_01_22.repositories.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,7 +71,14 @@ public class ExampleRestEndpoint {
 
     @PostMapping(path = "/savePersonToDatabase", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
-    public String savePersonToDatabase(@RequestBody Person person) {
+    public String savePersonToDatabase(@Valid @RequestBody Person person, BindingResult result) {
+        if (result.hasErrors()) {
+            String errorMessages = "";
+            for (FieldError error : result.getFieldErrors()) {
+                errorMessages += error.getField() + ": " + error.getDefaultMessage() + "\n";
+            }
+            return errorMessages;
+        }
         personRepository.save(person);
         return "Successfully saved!";
     }
